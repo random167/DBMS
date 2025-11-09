@@ -1,0 +1,42 @@
+CREATE TABLE Employee6
+(
+ emp_id NUMBER(5) PRIMARY KEY,
+ emp_name VARCHAR2(50),
+ dept_id NUMBER(3),
+ salary NUMBER(8, 2)
+);
+CREATE SEQUENCE emp_seq1
+START WITH 1001
+INCREMENT BY 1
+NOCACHE
+NOCYCLE;
+-- Create View for Employees with salary > 50000
+CREATE VIEW Emp_View1 AS
+SELECT emp_name, salary
+FROM Employee6
+WHERE salary > 50000;
+-- Create Index on Employee name
+CREATE INDEX idx_emp_name1 ON Employee6(emp_name);
+-- Create Synonym for Employee table
+CREATE SYNONYM emp_syn1 FOR Employee6;
+-- Create Table Department
+CREATE TABLE Department1
+(
+ dept_id NUMBER(3) PRIMARY KEY,
+ dept_name VARCHAR2(50)
+);
+-- Add Foreign Key Constraint to Employee Table
+ALTER TABLE Employee6
+ADD CONSTRAINT fk_dept
+FOREIGN KEY (dept_id)
+REFERENCES Department1(dept_id);
+-- Insert Data into Employee table using Sequence
+INSERT INTO Employee6 (emp_id, emp_name, dept_id, salary)
+VALUES (emp_seq1.NEXTVAL, 'John Doe', 101, 75000);
+-- Insert Data into Department table
+INSERT INTO Department1 (dept_id, dept_name)
+VALUES (101, 'HR');
+-- Select Data from View
+SELECT * FROM Emp_View1;
+-- Select Data from Synonym
+SELECT * FROM emp_syn1;

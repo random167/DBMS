@@ -1,0 +1,63 @@
+-- Create tables
+CREATE TABLE O_ROLL
+(
+ rollno NUMBER(10) NOT NULL, 
+ name VARCHAR2(50), 
+ gender CHAR(1),
+ CONSTRAINT pk1_o PRIMARY KEY (rollno)
+);
+
+CREATE TABLE N_ROLL
+(
+ rollno NUMBER(10) NOT NULL, 
+ name VARCHAR2(50), 
+ gender CHAR(1)
+);
+
+-- Insert some data into O_ROLL (Old Data)
+INSERT INTO O_ROLL VALUES (2001, 'xyz', 'M');
+INSERT INTO O_ROLL VALUES (2002, 'pqr', 'F');
+INSERT INTO O_ROLL VALUES (2005, 'abc', 'F');
+
+-- Insert some data into N_ROLL (New Data)
+INSERT INTO N_ROLL VALUES (2001, 'xyz', 'M');
+
+-- Enable output display
+SET SERVEROUTPUT ON;
+
+-- PL/SQL Block using a Parameterized Cursor
+DECLARE
+ a N_ROLL.rollno%TYPE;
+ b N_ROLL.name%TYPE;
+ c N_ROLL.gender%TYPE;
+ n NUMBER;
+
+ --  Parameterized cursor (takes roll number as input)
+ CURSOR rollcall(p_roll NUMBER) IS
+   SELECT rollno, name, gender FROM O_ROLL WHERE rollno = p_roll;
+
+BEGIN
+ -- Outer loop to go through each roll number in O_ROLL
+ FOR rec IN (SELECT rollno FROM O_ROLL) LOOP
+
+   OPEN rollcall(rec.rollno); -- Pass parameter value to cursor
+
+   LOOP
+     FETCH rollcall INTO a, b, c;
+     EXIT WHEN rollcall%NOTFOUND;
+
+     -- Check if the record already exists in N_ROLL
+     SELECT COUNT(*) INTO n FROM N_ROLL WHERE rollno = a;
+
+     IF n > 0 THEN
+       dbms_output.put_line('Data already exists for Roll No: ' || a);
+     ELSE
+       INSERT INTO N_ROLL VALUES (a, b, c);
+       dbms_output.put_line('Inserted Roll No: ' || a);
+     END IF;
+
+   END LOOP;
+
+   CLOSE rollcall;
+ END LOOP;
+END;

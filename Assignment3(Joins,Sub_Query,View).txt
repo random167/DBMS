@@ -1,0 +1,67 @@
+CREATE TABLE College
+( 
+ college_id NUMERIC(3) PRIMARY KEY,
+ college_name VARCHAR(15)
+);
+CREATE TABLE cdepartment
+(
+ Department_ID NUMERIC(2) PRIMARY KEY,
+ college_id NUMERIC(3),
+ name VARCHAR(20),
+ FOREIGN KEY (college_id) REFERENCES College(college_id)
+);
+INSERT INTO College VALUES(101,'xyz');
+INSERT INTO College VALUES(102,'abc');
+INSERT INTO College VALUES(103,'mno');
+INSERT INTO cdepartment VALUES(1,101,'xyzp');
+INSERT INTO cdepartment VALUES(2,102,'abc2');
+-- Corrected college_id for department 'mno3' (from 104 to 103)
+INSERT INTO cdepartment VALUES(3,103,'mno3');
+-- Step : Verify Data in Both Tables
+SELECT * FROM College;
+SELECT * FROM cdepartment;
+-- 1. INNER JOIN
+SELECT College.college_id, College.college_name, cdepartment.department_id, cdepartment.name
+FROM College
+INNER JOIN cdepartment
+ON College.college_id = cdepartment.college_id;
+-- 2. NATURAL JOIN
+SELECT *
+FROM College
+NATURAL JOIN cdepartment;
+-- 3. LEFT JOIN
+SELECT College.college_id, College.college_name, cdepartment.name
+FROM College
+LEFT JOIN cdepartment
+ON College.college_id = cdepartment.college_id;
+-- 4. RIGHT JOIN
+SELECT College.college_id, College.college_name, cdepartment.name
+FROM College
+RIGHT JOIN cdepartment
+ON College.college_id = cdepartment.college_id;
+-- 5. FULL JOIN
+SELECT College.college_name, cdepartment.name
+FROM College
+FULL JOIN cdepartment 
+ON College.college_id = cdepartment.college_id
+ORDER BY College.college_id;
+-- 6. CROSS JOIN
+SELECT College.college_name, cdepartment.name
+FROM College, cdepartment
+WHERE College.college_id = cdepartment.college_id;
+-- 7. Sub-query
+SELECT college_name
+FROM College
+WHERE college_id = (SELECT college_id FROM cdepartment WHERE department_id = (SELECT 
+MAX(department_id) FROM cdepartment));
+-- 8. Sub-query
+SELECT name
+FROM cdepartment
+WHERE college_id = (SELECT MIN(college_id) FROM College);
+-- 9. View
+CREATE VIEW College_Department_View AS
+SELECT College.college_name, cdepartment.name
+FROM College
+INNER JOIN cdepartment ON College.college_id = cdepartment.college_id;
+-- 10. Query the view
+SELECT * FROM College_Department_View;

@@ -1,0 +1,51 @@
+CREATE TABLE T3
+(
+ Roll_no NUMBER(10) NOT NULL, 
+ name VARCHAR2(50), 
+ issuedate DATE,
+ book VARCHAR2(10),
+ status CHAR(1),
+ CONSTRAINT pk1_T3 PRIMARY KEY (Roll_no)
+);
+CREATE TABLE T4
+(
+ Roll_no NUMBER(10) NOT NULL, 
+ name VARCHAR2(50), 
+ issuedate DATE,
+ book VARCHAR2(10),
+ status CHAR(1),
+ ts TIMESTAMP
+);
+INSERT ALL 
+ INTO T3 VALUES (101, 'Sita', TO_DATE('22-Dec-2022', 'DD-MON-YYYY'), 'TOC', 'I') 
+ INTO T3 VALUES (102, 'Mita', TO_DATE('20-Sep-2023', 'DD-MON-YYYY'), 'TOC', 'I') 
+ INTO T3 VALUES (103, 'Gita', TO_DATE('12-Nov-2023', 'DD-MON-YYYY'), 'TOC', 'I') 
+SELECT * FROM dual;
+SELECT * FROM T3;
+TRUNCATE TABLE T3;
+TRUNCATE TABLE T4;
+CREATE OR REPLACE TRIGGER lib_audit
+AFTER DELETE OR INSERT OR UPDATE ON T3
+FOR EACH ROW
+BEGIN
+
+IF UPDATING THEN
+ INSERT INTO T4 (roll_no, name, issuedate, book, status, ts)
+ VALUES (:old.roll_no, :old.name, :old.issuedate, :old.book, :old.status, SYSTIMESTAMP);
+ INSERT INTO T4 (roll_no, name, issuedate, book, status, ts)
+ VALUES (:new.roll_no, :new.name, :new.issuedate, :new.book, :new.status, SYSTIMESTAMP);
+ END IF;
+IF DELETING THEN
+ INSERT INTO T4 (roll_no, name, issuedate, book, status, ts)
+ VALUES (:old.roll_no, :old.name, :old.issuedate, :old.book, :old.status, SYSTIMESTAMP);
+ END IF;
+END;
+
+INSERT INTO T3 VALUES (104, 'ABCD', TO_DATE('12-AUG-2024', 'DD-MON-YYYY'), 'AI', 'I');
+SELECT * FROM T3;
+SELECT * FROM T4;
+UPDATE T3 SET name='Nita' WHERE roll_no=104;
+SELECT * FROM T4;
+DELETE FROM T3 WHERE roll_no=104;
+SELECT * FROM T3;
+SELECT * FROM T4;
