@@ -1,0 +1,87 @@
+CREATE TABLE P
+ (Rollno number(10) NOT NULL, 
+  name varchar2(50), 
+  Date_of_issue date, 
+  name_of_book varchar2(10), 
+  Status varchar2(1),  
+  CONSTRAINT chk1 CHECK(Status IN('I','R')),
+  CONSTRAINT pk1 PRIMARY KEY (Rollno)
+ ); 
+INSERT INTO P VALUES(1,'Aryan','12-June-2021','DBMS','I');
+INSERT INTO P VALUES(2,'Neha','22-June-2024','DBMS','I');
+INSERT INTO P VALUES(3,'Swati','20-July-2023','DBMS','I');
+INSERT INTO P VALUES(4,'Samrudhhi','02-July-2022','DBMS','I');
+INSERT ALL  
+  INTO P VALUES (5, 'Sham','22-Dec-2022','CN','I')  
+  INTO P VALUES (6, 'Ram','22-Aug-2022','CN','I')  
+  INTO P VALUES (7, 'Onkar','12-July-2022','CN','I')  
+SELECT * FROM dual;  
+CREATE SEQUENCE seq3
+  MINVALUE 5
+  MAXVALUE 50
+  START WITH 10
+  INCREMENT BY 1
+  CACHE 2;
+ 
+INSERT INTO P VALUES (seq3.nextval, 'Dharmesh','22-Dec-2022','TOC','I');  
+select * from P;
+CREATE TABLE Q 
+ (Rollno number(10) NOT NULL, 
+  Date_of_Return date, 
+  Fine number(10)
+ );
+DECLARE
+  roll     number(10);
+  bkn      varchar2(50);
+  idate    date; 
+  days     number(5);
+  fineamt  number(5) := 0; -- Initialize fine to 0, it's good practice
+BEGIN
+  -- 1. Get input from the user
+  roll := :roll;
+  bkn  := :bkn;
+
+  -- 2. We wrap the "dangerous" code in its own BEGIN...EXCEPTION...END block
+  BEGIN
+    -- Try to find the matching issued book
+    -- I also added "Status = 'I'" because you can't return a book that's already returned
+    SELECT Date_of_issue INTO idate 
+    FROM P 
+    WHERE Rollno = roll 
+      AND name_of_book = bkn
+      AND Status = 'I';
+
+    -- 3. If the SELECT succeeds, the code continues here
+    dbms_output.put_line('Roll Number: ' || roll); 
+    dbms_output.put_line('Book Name  : ' || bkn);
+    dbms_output.put_line('Issue Date : ' || idate);
+
+    -- Calculate days
+    SELECT trunc(sysdate - idate) INTO days FROM DUAL;
+    dbms_output.put_line('No of Days : ' || days); 
+
+    -- 4. Calculate Fine
+    IF (days > 15) AND (days < 30) THEN 
+      fineamt := days * 5; 
+    ELSIF (days >= 30) THEN 
+      fineamt := days * 10;
+    END IF; 
+
+    dbms_output.put_line('FINE: ' || fineamt);  
+
+    -- 5. Process the return
+    INSERT INTO Q VALUES (roll, sysdate, fineamt);  
+    
+    UPDATE A SET Status = 'R' 
+    WHERE Rollno = roll AND name_of_book = bkn;
+    
+    dbms_output.put_line('Success: Book return has been processed.');
+
+  EXCEPTION
+    -- 6. If the SELECT failed, control JUMPS here instead of crashing
+    WHEN NO_DATA_FOUND THEN
+      dbms_output.put_line('ERROR: No active issue record found for Rollno ' || roll || ' with book "' || bkn || '".');
+      dbms_output.put_line('Return process cancelled.');
+  END;
+
+END;
